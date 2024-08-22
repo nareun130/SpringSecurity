@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,10 +21,11 @@ public class ProjectSecurityConfig {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterchain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(
+        http.csrf((csrf) -> csrf.disable())
+                .authorizeHttpRequests(
                         reuqests -> reuqests.requestMatchers("/myAccount", "/myBalance", "myLoans",
                                         "/myCards").authenticated()
-                                .requestMatchers("/notices", "/contact").permitAll())
+                                .requestMatchers("/notices", "/contact", "/register").permitAll())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
         return http.build();
@@ -59,11 +61,17 @@ public class ProjectSecurityConfig {
 //        return new InMemoryUserDetailsManager(admin, user);
 //    }
 
-    @Bean
-    public UserDetailsService userDetailsService(DataSource dataSource) {
-        //* UserDetailsService를 UserDetailsManager가 상속 이것을 JdbcUserDetailsManager가 상속
-        return new JdbcUserDetailsManager(dataSource);
-    }
+    /*
+     * UserDetailsService를 구현한 Bean이 2개 이므로
+     * No AuthenticationProvider found for
+     * org.springframework.security.authentication.UsernamePasswordAuthenticationToken 발생
+     */
+
+//    @Bean
+//    public UserDetailsService userDetailsService(DataSource dataSource) {
+//        //* UserDetailsService를 UserDetailsManager가 상속 이것을 JdbcUserDetailsManager가 상속
+//        return new JdbcUserDetailsManager(dataSource);
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
