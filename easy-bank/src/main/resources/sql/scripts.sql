@@ -29,3 +29,5 @@ create table customer(
 );
 
 insert into customer(email, pwd, role) values('nareun130@gmail.com','12345','admin');
+-- BcryptoEncoder적용을 위해 칼럼 수정
+alter table customer alter column pwd type varchar(100);
