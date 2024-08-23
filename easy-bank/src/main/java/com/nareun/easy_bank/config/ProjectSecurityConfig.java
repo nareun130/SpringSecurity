@@ -17,40 +17,56 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.sql.DataSource;
+import java.util.Collections;
 
 @Configuration
 public class ProjectSecurityConfig {
 
     @Bean
-    SecurityFilterChain defaultSecurityFilterchain(HttpSecurity http) throws Exception {
-        http.
-                csrf((csrf) -> csrf.disable())
-                .authorizeHttpRequests(
-                        reuqests -> reuqests.requestMatchers("/myAccount", "/myBalance", "myLoans",
-                                        "/myCards", "/user").authenticated()
-                                .requestMatchers("/notices", "/contact", "/register").permitAll())
-                .formLogin(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults());
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.cors(cors -> cors.configurationSource(request -> {
+            //* 이 CORS정보들이 pre-flight request의 응답으로 간다.
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                    config.setAllowedMethods(Collections.singletonList("*"));
+                    //* 인증정보들을 넘기고 받는 데에 동의
+                    config.setAllowCredentials(true);
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    //* 브라우저에게 이 설정을 1시간 동안 기억해두었다가 maxAge가 지나면 캐시로 저장하게 함.
+                    config.setMaxAge(3600L);
+                    return config;
+                })).csrf(csrf -> csrf.disable()).
+                authorizeHttpRequests(auth -> auth.requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated().
+                        requestMatchers("/notices", "/contact", "/register").permitAll()).
+                formLogin(Customizer.withDefaults()).
+                httpBasic(Customizer.withDefaults());
+
         return http.build();
-
-        // * 2개다 운영 환경 x
-        // 1. 모든 요청을 거부
-        // ~> 인증은 성공 했지만 인가에서 막음.
-        // http.authorizeHttpRequests(reuqests -> reuqests.anyRequest().denyAll())
-        // .formLogin(Customizer.withDefaults())
-        // .httpBasic(Customizer.withDefaults());
-        // return http.build();
-
-        // 2. 모든 요청 허용
-        // http.authorizeHttpRequests(reuqests -> reuqests.anyRequest().permitAll())
-        // .formLogin(Customizer.withDefaults())
-        // .httpBasic(Customizer.withDefaults());
-        // return http.build();
     }
 
-    //* 인메모리 방식 -> 운영 환경 x
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+//        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
+    }
+
+    // * 2개다 운영 환경 x
+    // 1. 모든 요청을 거부
+    // ~> 인증은 성공 했지만 인가에서 막음.
+    // http.authorizeHttpRequests(reuqests -> reuqests.anyRequest().denyAll())
+    // .formLogin(Customizer.withDefaults())
+    // .httpBasic(Customizer.withDefaults());
+    // return http.build();
+
+    // 2. 모든 요청 허용
+    // http.authorizeHttpRequests(reuqests -> reuqests.anyRequest().permitAll())
+    // .formLogin(Customizer.withDefaults())
+    // .httpBasic(Customizer.withDefaults());
+
+//* 인메모리 방식 -> 운영 환경 x
 //    @Bean
 //    public InMemoryUserDetailsManager userDetailsService() {
 //        UserDetails admin = User.withDefaultPasswordEncoder()
@@ -77,11 +93,5 @@ public class ProjectSecurityConfig {
 //        //* UserDetailsService를 UserDetailsManager가 상속 이것을 JdbcUserDetailsManager가 상속
 //        return new JdbcUserDetailsManager(dataSource);
 //    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-//        return NoOpPasswordEncoder.getInstance();
-        return new BCryptPasswordEncoder();
-    }
 
 }
