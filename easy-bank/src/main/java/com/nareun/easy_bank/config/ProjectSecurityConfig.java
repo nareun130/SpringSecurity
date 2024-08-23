@@ -1,5 +1,6 @@
 package com.nareun.easy_bank.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -14,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import javax.sql.DataSource;
 
@@ -22,10 +25,11 @@ public class ProjectSecurityConfig {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterchain(HttpSecurity http) throws Exception {
-        http.csrf((csrf) -> csrf.disable())
+        http.
+                csrf((csrf) -> csrf.disable())
                 .authorizeHttpRequests(
                         reuqests -> reuqests.requestMatchers("/myAccount", "/myBalance", "myLoans",
-                                        "/myCards").authenticated()
+                                        "/myCards", "/user").authenticated()
                                 .requestMatchers("/notices", "/contact", "/register").permitAll())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
