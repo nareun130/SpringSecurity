@@ -212,3 +212,10 @@ values(1, 'VIEWLOANS');
 
 insert into AUTHORITIES(customer_id, name)
 values(1, 'VIEWBALANCE');
+
+delete from authorities;
+
+insert into AUTHORITIES (customer_id, name)
+values(1,'ROLE_USER');
+insert into AUTHORITIES (customer_id, name)
+values(1,'ROLE_ADMIN');

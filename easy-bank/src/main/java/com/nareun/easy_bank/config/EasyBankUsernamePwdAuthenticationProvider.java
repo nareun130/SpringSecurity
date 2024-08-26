@@ -1,5 +1,6 @@
 package com.nareun.easy_bank.config;
 
+import com.nareun.easy_bank.model.Authority;
 import com.nareun.easy_bank.model.Customer;
 import com.nareun.easy_bank.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class EasyBankUsernamePwdAuthenticationProvider implements AuthenticationProvider {
@@ -33,15 +35,21 @@ public class EasyBankUsernamePwdAuthenticationProvider implements Authentication
         List<Customer> customers = customerRepository.findByEmail(username);
         if (customers.size() > 0) {
             if (passwordEncoder.matches(pwd, customers.get(0).getPwd())) {
-                List<GrantedAuthority> authorities = new ArrayList<>();
-                authorities.add(new SimpleGrantedAuthority(customers.get(0).getRole()));
-                return new UsernamePasswordAuthenticationToken(username, pwd, authorities);
+                return new UsernamePasswordAuthenticationToken(username, pwd, getGrantedAuthorities(customers.get(0).getAuthorities()));
             } else {
                 throw new BadCredentialsException("Invalid password!");
             }
         } else {
             throw new BadCredentialsException("No user registered with this details!");
         }
+    }
+
+    private List<GrantedAuthority> getGrantedAuthorities(Set<Authority> authorities) {
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        for (Authority authority : authorities) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(authority.getName()));
+        }
+        return grantedAuthorities;
     }
 
     //* AuthenticationProvider가 주어진 Authentication 객체를 처리할 수 있는지 여부를 결정

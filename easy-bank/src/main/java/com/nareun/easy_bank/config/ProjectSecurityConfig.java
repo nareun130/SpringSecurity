@@ -1,6 +1,9 @@
 package com.nareun.easy_bank.config;
 
+import com.nareun.easy_bank.filter.AUthoritiesLoggingAfterFilter;
+import com.nareun.easy_bank.filter.AuthoritiesLoggingAtFilter;
 import com.nareun.easy_bank.filter.CsrfCookieFilter;
+import com.nareun.easy_bank.filter.RequestValidationBeforeFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,8 +74,25 @@ public class ProjectSecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 //* BasicAuthenticationFilter 다음에 CsrfCookieFilter 실행 -> 로그인 동작 후 csrf토큰 생성
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
-                        .requestMatchers("/notices", "/contact", "/register").permitAll())
+                //* BasicAuthenticationFilter전에 필터 추가
+                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AUthoritiesLoggingAfterFilter(),BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthoritiesLoggingAtFilter(),BasicAuthenticationFilter.class)
+                .authorizeHttpRequests(
+                        auth -> auth
+                                // * 권한
+//                                .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+//                                .requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT", "VIEWBALANCE")
+//                                .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
+//                                .requestMatchers("/myCards").hasAuthority("VIEWCARD")
+                                // * 역할 -> DB에는 ROLE_ADMIN이런 식으로 접두사를 붙이지만 역할 사용시에는 붙이지 않는다!
+                                .requestMatchers("/myAccount").hasRole("USER")
+                                .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers("/myLoans").hasRole("USER")
+                                .requestMatchers("/myCards").hasRole("MANAGER")
+
+                                .requestMatchers("/user").authenticated()
+                                .requestMatchers("/notices", "/contact", "/register").permitAll())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
 
