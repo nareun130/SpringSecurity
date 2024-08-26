@@ -1,9 +1,6 @@
 package com.nareun.easy_bank.config;
 
-import com.nareun.easy_bank.filter.AUthoritiesLoggingAfterFilter;
-import com.nareun.easy_bank.filter.AuthoritiesLoggingAtFilter;
-import com.nareun.easy_bank.filter.CsrfCookieFilter;
-import com.nareun.easy_bank.filter.RequestValidationBeforeFilter;
+import com.nareun.easy_bank.filter.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +25,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
@@ -45,10 +43,12 @@ public class ProjectSecurityConfig {
                 // * SecurityContextHolder안에 있는 인증 정보를 저장하는 역할을 맡지 않겠다는 걸 의미 -> 프레임워크들이 대신 수행 하도록
                 //~> 기본 true : 보안 컨텍스트 명시적 저장
                 //~> false : 보안 컨텍스트 자동 저장 -> 변경이 생겨도 자동으로 반영 -> 대부분의 app에서 사용
-                .securityContext(context -> context.requireExplicitSave(false))
+//                .securityContext(context -> context.requireExplicitSave(false))
                 // * 첫 로그인이 성공하면 항상 JSESSIONID를 생성하도록 -> 매번 자격증명을 하지 않기 하기 위해
                 // ~> 모든 요청에 대해 새로운 세션이 생기거나, 기존 세션이 있으면 사용
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                //* JWT사용을 위해 세션을 생성하지 말라고 전달
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(request -> {
                     // & CORS는 보안정책, CSRF는 보안 위협
                     //* 이 CORS정보들이 pre-flight request의 응답으로 간다.
@@ -58,6 +58,9 @@ public class ProjectSecurityConfig {
                     //* 인증정보들을 넘기고 받는 데에 동의
                     config.setAllowCredentials(true);
                     config.setAllowedHeaders(Collections.singletonList("*"));
+                    //* UI App에서 해당 헤더를 읽을 수 있도록 -> 헤더 노출
+                    //~> csrf토큰 헤더는 프레임워크가 제공한 헤더라서 프레임워크가 내부적으로 해결 하지만 Authorization은 우리가 직접 인가(JWT)하기를 위해 만드는 헤더
+                    config.setExposedHeaders(Arrays.asList("Authorization"));
                     //* 브라우저에게 이 설정을 1시간 동안 기억해두었다가 maxAge가 지나면 캐시로 저장하게 함.
                     config.setMaxAge(3600L);
                     return config;
@@ -76,8 +79,12 @@ public class ProjectSecurityConfig {
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 //* BasicAuthenticationFilter전에 필터 추가
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
-                .addFilterAfter(new AUthoritiesLoggingAfterFilter(),BasicAuthenticationFilter.class)
-                .addFilterAt(new AuthoritiesLoggingAtFilter(),BasicAuthenticationFilter.class)
+                .addFilterAfter(new AUthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
+                //~> 기본 인증 이후 jwt토큰을 생성하기 위해 필터 순서 지정
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                //~> 기본 인증 이전 jwt토큰 유효성 검증
+                .addFilterBefore(new JWTTokenValidatorFilter(),BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(
                         auth -> auth
                                 // * 권한
