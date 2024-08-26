@@ -190,3 +190,25 @@ CREATE TABLE contact_messages
     create_dt     date DEFAULT NULL,
     PRIMARY KEY (contact_id)
 );
+
+CREATE table authorities
+(
+    id          serial primary key,
+    customer_id integer     not null,
+    name        varchar(50) not null,
+    constraint fk_customer foreign key (customer_id) references customer (customer_id)
+);
+
+create index idx_authorities_customer_id on authorities (customer_id);
+
+insert into AUTHORITIES(customer_id, name)
+values(1, 'VIEWACCOUNT');
+
+insert into AUTHORITIES(customer_id, name)
+values(1, 'VIEWCARD');
+
+insert into AUTHORITIES(customer_id, name)
+values(1, 'VIEWLOANS');
+
+insert into AUTHORITIES(customer_id, name)
+values(1, 'VIEWBALANCE');
