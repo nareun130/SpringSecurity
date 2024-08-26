@@ -19,6 +19,9 @@ public class AccountTransactions {
 
     private Date transactionDt;
 
+
+    private String transactionSummary;
+
     private String transactionType;
 
     private int transactionAmt;
@@ -58,6 +61,14 @@ public class AccountTransactions {
     public void setTransactionDt(Date transactionDt) {
         this.transactionDt = transactionDt;
     }
+    public String getTransactionSummary() {
+        return transactionSummary;
+    }
+
+    public void setTransactionSummary(String transactionSummary) {
+        this.transactionSummary = transactionSummary;
+    }
+
 
     public String getTransactionType() {
         return transactionType;
