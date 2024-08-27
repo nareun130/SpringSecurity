@@ -95,7 +95,8 @@ public class ProjectSecurityConfig {
                                 // * 역할 -> DB에는 ROLE_ADMIN이런 식으로 접두사를 붙이지만 역할 사용시에는 붙이지 않는다!
                                 .requestMatchers("/myAccount").hasRole("USER")
                                 .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/myLoans").hasRole("USER")
+//                                .requestMatchers("/myLoans").hasRole("USER")
+                                .requestMatchers("/myLoans").authenticated()//~> hasRole로는 구현할 수 없는 복잡한 인증 로직인 경우 -> 메소드 보안레벨로
                                 .requestMatchers("/myCards").hasRole("MANAGER")
 
                                 .requestMatchers("/user").authenticated()
