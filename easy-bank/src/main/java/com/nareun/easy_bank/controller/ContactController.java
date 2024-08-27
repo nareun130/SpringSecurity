@@ -3,6 +3,7 @@ package com.nareun.easy_bank.controller;
 import com.nareun.easy_bank.model.Contact;
 import com.nareun.easy_bank.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +22,8 @@ public class ContactController {
     private ContactRepository contactRepository;
 
     @PostMapping("/contact")
-    @PreFilter("filterObject.contactName!='Test'")//* filtering 조건을 걸 때는 매개변수와 리턴이 모두 List여야 한다!!
+//    @PreFilter("filterObject.contactName!='Test'")//* filtering 조건을 걸 때는 매개변수와 리턴이 모두 List여야 한다!!
+    @PostFilter("filterObject.contactName!='Test'")
     public List<Contact> saveContactInquiryDetails(@RequestBody List<Contact> contacts) {
         //~> contactName이 Test이므로 filtering 되어서 size가 0이 됨.
         Contact contact = contacts.get(0);
