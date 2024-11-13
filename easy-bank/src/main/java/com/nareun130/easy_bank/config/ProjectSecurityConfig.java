@@ -1,20 +1,19 @@
 package com.nareun130.easy_bank.config;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import javax.sql.DataSource;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 public class ProjectSecurityConfig {
@@ -39,17 +38,11 @@ public class ProjectSecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        // 평문으로 비밀번호 저장
-        // UserDetails user =
-        // User.withUsername("user").password("{noop}12345").authorities("read").build();
-        // UserDetails admin =
-        // User.withUsername("admin").password("{noop}54321").authorities("admin").build();
-        UserDetails user = User.withUsername("user").password("{noop}nareun@130").authorities("read").build();
-        UserDetails admin = User.withUsername("admin").password("{bcrpyt}$2a$12$GwUegjvGui0qbn.8yW7q9OVI1Eg4I5BvvNCCSeEIBZYOTgULEPOMq").authorities("admin").build();
-        return new InMemoryUserDetailsManager(user, admin);
-    }
+    //* 커스텀 UserDetailsService를 구현 하였기에 필요 x
+    // @Bean
+    // public UserDetailsService userDetailsService(DataSource dataSource) {
+    //     return new JdbcUserDetailsManager(dataSource);
+    // }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
