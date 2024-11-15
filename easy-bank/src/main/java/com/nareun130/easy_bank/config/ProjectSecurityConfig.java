@@ -28,10 +28,11 @@ public class ProjectSecurityConfig {
         // http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
         // http.authorizeHttpRequests(requests -> requests.anyRequest().denyAll());
         //* csrf 비활성화 : 기본적으로 POST,PUT,DELETE에 대해 Security가 보호 
-        http.csrf(csrfConfig -> csrfConfig.disable())
+        http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // http만 허용
+            .csrf(csrfConfig -> csrfConfig.disable())
                 .authorizeHttpRequests(
                         requests -> requests.requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans")
-                                .authenticated()
+                                .authenticated() 
                                 .requestMatchers("/notices", "/contact", "/register").permitAll());
         // 기본 폼 로그인
         http.formLogin(withDefaults());

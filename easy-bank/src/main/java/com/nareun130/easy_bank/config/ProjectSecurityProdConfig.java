@@ -28,7 +28,8 @@ public class ProjectSecurityProdConfig {
         // http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
         // http.authorizeHttpRequests(requests -> requests.anyRequest().denyAll());
         // * csrf 비활성화 : 기본적으로 POST,PUT,DELETE에 대해 Security가 보호
-        http.csrf(csrfConfig -> csrfConfig.disable())
+        http.requiresChannel(rcc -> rcc.anyRequest().requiresSecure())// https만 허용
+            .csrf(csrfConfig -> csrfConfig.disable())
                 .authorizeHttpRequests(
                         requests -> requests.requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans")
                                 .authenticated()
