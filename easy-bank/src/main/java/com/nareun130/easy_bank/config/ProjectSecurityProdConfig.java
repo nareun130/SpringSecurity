@@ -17,8 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
 @Configuration
-@Profile("!prod")
-public class ProjectSecurityConfig {
+@Profile("prod")
+public class ProjectSecurityProdConfig {
 
     @Bean
     SecurityFilterChain defauSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -27,7 +27,7 @@ public class ProjectSecurityConfig {
         // requests.anyRequest().authenticated());
         // http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
         // http.authorizeHttpRequests(requests -> requests.anyRequest().denyAll());
-        //* csrf 비활성화 : 기본적으로 POST,PUT,DELETE에 대해 Security가 보호 
+        // * csrf 비활성화 : 기본적으로 POST,PUT,DELETE에 대해 Security가 보호
         http.csrf(csrfConfig -> csrfConfig.disable())
                 .authorizeHttpRequests(
                         requests -> requests.requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans")
@@ -52,8 +52,9 @@ public class ProjectSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         // return new BCryptPasswordEncoder();
-        // * 기본적으로 BCryptPasswordEncoder 이용 
-        //! BcryptPasswordEncoder를 직접 사용 x -> DelegatingPasswordEncoder를 사용할 것! 표준이 바뀌었을 때를 대비
+        // * 기본적으로 BCryptPasswordEncoder 이용
+        // ! BcryptPasswordEncoder를 직접 사용 x -> DelegatingPasswordEncoder를 사용할 것! 표준이
+        // 바뀌었을 때를 대비
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 

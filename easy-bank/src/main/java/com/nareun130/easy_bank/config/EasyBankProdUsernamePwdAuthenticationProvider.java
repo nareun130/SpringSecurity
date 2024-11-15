@@ -14,9 +14,10 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 @Component
-@Profile("!prod")
+@Profile("prod")
 @RequiredArgsConstructor
-public class EasyBankUsernamePwdAuthenticationProvider implements AuthenticationProvider {
+public class EasyBankProdUsernamePwdAuthenticationProvider implements AuthenticationProvider{
+    
 
     private final UserDetailsService userDetailsService;
 
@@ -27,12 +28,18 @@ public class EasyBankUsernamePwdAuthenticationProvider implements Authentication
         String username = authentication.getName();
         String pwd = authentication.getCredentials().toString();
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (passwordEncoder.matches(pwd, userDetails.getPassword())) {
+            // 나이정보를 가져와 성인인지 검증 로직 같은 걸 넣을 수 있음.
             return new UsernamePasswordAuthenticationToken(username, pwd, userDetails.getAuthorities());
+        } else {
+            throw new BadCredentialsException("Invalid password!");
+        }
     } 
 
     @Override
     public boolean supports(Class<?> authentication) {
         return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
+
 
 }
