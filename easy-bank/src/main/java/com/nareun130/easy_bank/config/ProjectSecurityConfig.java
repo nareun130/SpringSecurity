@@ -16,6 +16,7 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
+import com.nareun130.easy_bank.exceptionhadling.CustomAccessDeniedHandler;
 import com.nareun130.easy_bank.exceptionhadling.CustomBasicAuthenticationEntryPoint;
 
 @Configuration
@@ -24,6 +25,7 @@ public class ProjectSecurityConfig {
 
     @Bean
     SecurityFilterChain defauSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession").maximumSessions(3).maxSessionsPreventsLogin(true));
         // 모든 요청은 보호, 허가, 거부 => 권한 x : 403
         // http.authorizeHttpRequests(requests ->
         // requests.anyRequest().authenticated());
@@ -35,7 +37,7 @@ public class ProjectSecurityConfig {
                 .authorizeHttpRequests(
                         requests -> requests.requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans")
                                 .authenticated() 
-                                .requestMatchers("/notices", "/contact", "/register").permitAll());
+                                .requestMatchers("/notices", "/contact", "/register","/invalidSession").permitAll());
         // 기본 폼 로그인
         http.formLogin(withDefaults());
         // * 기본 폼 로그인 비활성화
@@ -44,6 +46,7 @@ public class ProjectSecurityConfig {
         http.httpBasic(hbc->hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         // http basic 활성화 : username, password를 base64로 인코딩하여 header에 추가
         // http.httpBasic(hbc->hbc.disable());//hbc -> httpBasicConfigurer;
+        http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
         return http.build();
     }
 
