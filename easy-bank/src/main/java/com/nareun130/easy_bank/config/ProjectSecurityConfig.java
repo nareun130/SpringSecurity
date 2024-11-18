@@ -16,6 +16,8 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
+import com.nareun130.easy_bank.exceptionhadling.CustomBasicAuthenticationEntryPoint;
+
 @Configuration
 @Profile("!prod")
 public class ProjectSecurityConfig {
@@ -38,8 +40,9 @@ public class ProjectSecurityConfig {
         http.formLogin(withDefaults());
         // * 기본 폼 로그인 비활성화
         // http.formLogin(flc -> flc.disable());//flc -> formLoginConfigurer
+        // http.httpBasic(withDefaults());
+        http.httpBasic(hbc->hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         // http basic 활성화 : username, password를 base64로 인코딩하여 header에 추가
-        http.httpBasic(withDefaults());
         // http.httpBasic(hbc->hbc.disable());//hbc -> httpBasicConfigurer;
         return http.build();
     }
