@@ -22,6 +22,7 @@ public class NoticesController {
         List<Notice> notices = noticeRepository.findAllActiveNotices();
         if (notices != null) {
             return ResponseEntity.ok()
+                    //* Notice관련 데이터를 브라우저가 60초 동안 캐시하도록 -> 60초 동안 notices 페이지를 여러 번 새로고침해도 API 호출 x
                     .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
                     .body(notices);
         } else {
