@@ -35,5 +35,6 @@ public class Customer {
     private Date createDt;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
+    @JsonIgnore //~> UI 앱에서는 나타나지 않음.
     private Set<Authority> authorities;
 }

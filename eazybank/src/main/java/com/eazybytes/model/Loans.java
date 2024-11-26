@@ -35,7 +35,7 @@ public class Loans {
 
     @Column(name = "outstanding_amount")
     private int outstandingAmount;
-
+    
     @Column(name = "create_dt")
     private Date createDt;
 
