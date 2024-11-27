@@ -179,3 +179,11 @@ INSERT INTO `authorities`(`customer_id`, `name`)
 VALUES (1, 'VIEWLOANS');
 INSERT INTO `authorities`(`customer_id`, `name`)
 VALUES (1, 'VIEWBALANCE');
+
+delete from `authorities`;
+
+insert into `authorities`(`customer_id`, `name`)
+values(1,'ROLE_USER');
+
+insert into `authorities`(`customer_id`, `name`)
+values(1,'ROLE_ADMIN');
