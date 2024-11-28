@@ -5,6 +5,8 @@ import com.eazybytes.exceptionhandling.CustomBasicAuthenticationEntryPoint;
 import com.eazybytes.filter.AuthoritiesLoggingAfterFilter;
 import com.eazybytes.filter.AuthoritiesLoggingAtFilter;
 import com.eazybytes.filter.CsrfCookieFilter;
+import com.eazybytes.filter.JWTTokenGeneratorFilter;
+import com.eazybytes.filter.JWTTokenValidatorFilter;
 import com.eazybytes.filter.RequestValidationBeforeFilter;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,8 +37,13 @@ public class ProjectSecurityProdConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
-        http.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
-                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+        http
+                // .securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
+                // .sessionManagement(sessionConfig ->
+                // sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                //* JWT를 사용하기 위해 무상태성
+                .sessionManagement(
+                        sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
@@ -49,13 +56,19 @@ public class ProjectSecurityProdConfig {
                         return config;
                     }
                 }))
-                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
-                        .ignoringRequestMatchers( "/contact","/register")
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                // .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                //         .ignoringRequestMatchers("/contact", "/register")
+                //         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                //* JWT를 통해 stateles하므로 csrf 비활성화 
+                .csrf(csrfConfig -> csrfConfig.disable())
+                // .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
                 .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
+                // * 로그인 후 jwt 생성
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                // * jwt 검증 성공하면 다시 인증하지 않도록 하기 위해
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .requiresChannel(rcc -> rcc.anyRequest().requiresSecure()) // Only HTTPS
                 .authorizeHttpRequests((requests) -> requests
                         // .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
@@ -63,11 +76,11 @@ public class ProjectSecurityProdConfig {
                         // .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
                         // .requestMatchers("/myCards").hasAuthority("VIEWCARDS")
                         .requestMatchers("/myAccount").hasRole("USER")
-                        .requestMatchers("/myBalance").hasAnyRole("USER","ADMIN")
+                        .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/myLoans").hasRole("USER")
                         .requestMatchers("/myCards").hasRole("USER")
                         .requestMatchers("/user").authenticated()
-                        .requestMatchers("/notices", "/contact", "/error", "/register", "/invalidSession").permitAll());
+                        .requestMatchers("/notices", "/contact", "/error", "/register", "/invalidSession","/apiLogin").permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
@@ -81,6 +94,7 @@ public class ProjectSecurityProdConfig {
 
     /**
      * From Spring Security 6.3 version
+     * 
      * @return
      */
     @Bean
