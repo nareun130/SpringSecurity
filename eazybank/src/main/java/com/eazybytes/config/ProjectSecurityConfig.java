@@ -5,6 +5,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -27,6 +28,15 @@ import jakarta.servlet.http.HttpServletRequest;
 @Configuration
 @Profile("!prod")
 public class ProjectSecurityConfig {
+
+    // @Value("${spring.security.oauth2.resourceserver.opaquetoken.introspection-uri}")
+    // String introspectionUri;
+
+    // @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id}")
+    // String clientId;
+
+    // @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-secret}")
+    // String clientSecret;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -95,8 +105,15 @@ public class ProjectSecurityConfig {
                         .permitAll());
         // ~> KeyCloak에게 인증을 맡기기 위해 비활성화
         // http.formLogin(withDefaults());
-        //* 리소스 서버로 jwt를 받기 위해 추가 
-        http.oauth2ResourceServer(rsc -> rsc.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+        // * 리소스 서버로 jwt를 받기 위해 추가
+        http.oauth2ResourceServer(
+                rsc -> rsc.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+        // * 리소스 서버로 opaque token을 받기 위해 추가
+        // http.oauth2ResourceServer(
+        // rsc -> rsc.opaqueToken(otc -> otc.authenticationConverter(new
+        // KeycloakOpaqueRoleConverter())
+        // .introspectionUri(this.introspectionUri)
+        // .introspectionClientCredentials(this.clientId, this.clientSecret)));
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
         return http.build();
